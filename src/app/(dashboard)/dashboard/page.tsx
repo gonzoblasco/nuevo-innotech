@@ -1,15 +1,18 @@
 // ===================================================================
-// 📁 ARCHIVO: src/app/(dashboard)/dashboard/page.tsx (TIPOS CORREGIDOS)
+// 📁 ARCHIVO: src/app/(dashboard)/dashboard/page.tsx (CORREGIDO)
 // ===================================================================
 /**
- * Página principal del dashboard con tipos corregidos
+ * Página principal del dashboard - Client Component
  * 
  * Características:
- * - Tipos compatibles entre Supabase User y componentes
- * - Manejo correcto de undefined vs null
- * - Server Component optimizado
+ * - Client Component para acceso a AuthProvider
+ * - Manejo correcto de estados de autenticación
+ * - Componentes del dashboard integrados
+ * - Datos mock preparados para desarrollo
  */
-import { createClient } from '@/lib/supabase/server'
+'use client'
+
+import { useAuth } from '@/components/auth/AuthProvider'
 import WelcomeSection from '@/components/dashboard/WelcomeSection'
 import UsageStats from '@/components/dashboard/UsageStats'
 import AgentCard from '@/components/dashboard/AgentCard'
@@ -59,59 +62,75 @@ const mockRecentSessions = [
   }
 ]
 
-export default async function DashboardPage() {
-  // Obtener datos del usuario desde Supabase (Server Component)
-  const supabase = await createClient()
-  
-  let userProfile: UserProfile | null = null
-  let error: string | null = null
+export default function DashboardPage() {
+  // Obtener datos del usuario desde AuthProvider (Client Component)
+  const { user, isLoading } = useAuth()
 
-  try {
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    
-    if (authError) {
-      console.error('Error obteniendo usuario:', authError)
-      error = authError.message
-    } else if (user) {
-      // Construir userProfile con tipos correctos (null en lugar de undefined)
-      userProfile = {
-        id: user.id,
-        email: user.email || null, // Convertir undefined a null
-        full_name: user.user_metadata?.full_name || null, // Convertir undefined a null
-        avatar_url: user.user_metadata?.avatar_url || null, // Convertir undefined a null
-        created_at: user.created_at
-      }
-    }
-  } catch (err) {
-    console.error('Error inesperado:', err)
-    error = 'Error inesperado al cargar datos'
-  }
-
-  // Si hay error, mostrar estado de error
-  if (error) {
+  // Mostrar loading si está cargando
+  if (isLoading) {
     return (
       <div className="max-w-7xl mx-auto">
-        <div className="bg-red-50 border border-red-200 rounded-xl p-6">
-          <h2 className="text-lg font-semibold text-red-800 mb-2">
-            Error al cargar el dashboard
-          </h2>
-          <p className="text-red-700">{error}</p>
+        <div className="animate-pulse">
+          {/* Skeleton de bienvenida */}
+          <div className="bg-gray-200 rounded-xl h-32 mb-6"></div>
+          
+          {/* Skeleton del grid */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2 space-y-6">
+              <div className="bg-gray-200 rounded-xl h-48"></div>
+              <div className="bg-gray-200 rounded-xl h-64"></div>
+            </div>
+            <div className="lg:col-span-1">
+              <div className="bg-gray-200 rounded-xl h-80"></div>
+            </div>
+          </div>
         </div>
       </div>
     )
   }
 
+  // Mostrar error si no hay usuario (backup del middleware)
+  if (!user) {
+    return (
+      <div className="max-w-7xl mx-auto">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-red-800 mb-2">
+            Error de autenticación
+          </h2>
+          <p className="text-red-700 mb-4">
+            No se pudo verificar tu sesión. Por favor, inicia sesión nuevamente.
+          </p>
+          <button
+            onClick={() => window.location.href = '/login'}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
+          >
+            Ir al Login
+          </button>
+        </div>
+      </div>
+    )
+  }
+
+  // Construir userProfile con tipos correctos (null en lugar de undefined)
+  const userProfile: UserProfile = {
+    id: user.id,
+    email: user.email || null,
+    full_name: user.user_metadata?.full_name || null,
+    avatar_url: user.user_metadata?.avatar_url || null,
+    created_at: user.created_at
+  }
+
   return (
-    <div className="max-w-7xl mx-auto space-y-6">
+    <div className="space-y-8">
       {/* Sección de bienvenida */}
       <WelcomeSection 
         user={userProfile}
       />
 
       {/* Grid principal del dashboard */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 xl:grid-cols-5 gap-8">
         {/* Columna izquierda: Estadísticas y agente principal */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="xl:col-span-3 space-y-8">
           {/* Estadísticas de uso */}
           <UsageStats 
             messagesUsed={mockUsageData.messagesUsed}
@@ -125,7 +144,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Columna derecha: Historial de sesiones recientes */}
-        <div className="lg:col-span-1">
+        <div className="xl:col-span-2">
           <RecentSessions sessions={mockRecentSessions} />
         </div>
       </div>

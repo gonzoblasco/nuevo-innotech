@@ -9,6 +9,7 @@
  * - Integración con AuthProvider para datos del usuario
  * - Navegación adaptativa (hamburguesa en móvil, fija en desktop)
  * - Estados de carga y manejo de autenticación
+ * - Padding y márgenes correctos para el contenido
  */
 'use client'
 
@@ -48,7 +49,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header móvil con hamburguesa */}
-      <div className="lg:hidden bg-white shadow-sm border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+      <div className="lg:hidden bg-white shadow-sm border-b border-gray-200 px-4 py-3 flex items-center justify-between sticky top-0 z-40">
         <div>
           <h1 className="text-lg font-bold text-blue-600">InnoTech</h1>
           <p className="text-xs text-gray-500">Solutions</p>
@@ -83,9 +84,10 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           />
         )}
 
-        {/* Contenido principal */}
-        <main className="flex-1 lg:ml-64">
-          <div className="p-4 sm:p-6 lg:p-8">
+        {/* Contenido principal con margen correcto para desktop */}
+        <main className="flex-1">
+          {/* Contenedor que se expande completamente dentro de su espacio */}
+          <div className="p-4 sm:p-6 lg:p-8 w-full">
             {children}
           </div>
         </main>

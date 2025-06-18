@@ -10,7 +10,7 @@
  * - Integra verificación de autenticación
  */
 import { Metadata } from 'next'
-import DashboardLayout from '@/components/components/layout/DashboardLayout'
+import DashboardLayout from '@/components/layout/DashboardLayout'
 
 export const metadata: Metadata = {
   title: 'Dashboard | InnoTech Solutions',

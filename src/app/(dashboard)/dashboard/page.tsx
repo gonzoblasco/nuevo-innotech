@@ -1,116 +1,132 @@
 // ===================================================================
-// 📁 src/app/(dashboard)/dashboard/page.tsx
+// 📁 ARCHIVO: src/app/(dashboard)/dashboard/page.tsx (TIPOS CORREGIDOS)
 // ===================================================================
-'use client'
+/**
+ * Página principal del dashboard con tipos corregidos
+ * 
+ * Características:
+ * - Tipos compatibles entre Supabase User y componentes
+ * - Manejo correcto de undefined vs null
+ * - Server Component optimizado
+ */
+import { createClient } from '@/lib/supabase/server'
+import WelcomeSection from '@/components/dashboard/WelcomeSection'
+import UsageStats from '@/components/dashboard/UsageStats'
+import AgentCard from '@/components/dashboard/AgentCard'
+import RecentSessions from '@/components/dashboard/RecentSessions'
 
-import { useAuth } from '@/components/auth/AuthProvider'
-import { supabase } from '@/lib/supabase/client'
+// Definir interfaz User que coincida con WelcomeSection
+interface UserProfile {
+  id: string
+  email: string | null
+  full_name: string | null
+  avatar_url: string | null
+  created_at: string
+}
 
-export default function DashboardPage() {
-  const { user, isLoading } = useAuth()
+// Datos mock para desarrollo (TODO: reemplazar con datos reales de Supabase)
+const mockUsageData = {
+  messagesUsed: 45,
+  messagesLimit: 100,
+  currentPlan: 'Lite',
+  sessionsCompleted: 8
+}
 
-  const handleSignOut = async () => {
-    try {
-      console.log('🚪 Cerrando sesión...')
-      await supabase.auth.signOut()
-      window.location.href = '/login'
-    } catch (error) {
-      console.error('Error al cerrar sesión:', error)
+const mockRecentSessions = [
+  {
+    id: '1',
+    agentName: 'Arquitecto de Decisiones',
+    title: 'Estrategia de lanzamiento de producto',
+    lastMessage: 'Considera realizar un MVP con las funcionalidades core...',
+    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 horas atrás
+    status: 'completed' as const
+  },
+  {
+    id: '2',
+    agentName: 'Experto en Marketing',
+    title: 'Análisis de competencia',
+    lastMessage: 'He identificado 3 competidores principales...',
+    timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000), // 1 día atrás
+    status: 'active' as const
+  },
+  {
+    id: '3',
+    agentName: 'Consultor Financiero',
+    title: 'Proyección de ingresos Q1',
+    lastMessage: 'Basándome en tus datos históricos...',
+    timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000), // 3 días atrás
+    status: 'completed' as const
+  }
+]
+
+export default async function DashboardPage() {
+  // Obtener datos del usuario desde Supabase (Server Component)
+  const supabase = await createClient()
+  
+  let userProfile: UserProfile | null = null
+  let error: string | null = null
+
+  try {
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    
+    if (authError) {
+      console.error('Error obteniendo usuario:', authError)
+      error = authError.message
+    } else if (user) {
+      // Construir userProfile con tipos correctos (null en lugar de undefined)
+      userProfile = {
+        id: user.id,
+        email: user.email || null, // Convertir undefined a null
+        full_name: user.user_metadata?.full_name || null, // Convertir undefined a null
+        avatar_url: user.user_metadata?.avatar_url || null, // Convertir undefined a null
+        created_at: user.created_at
+      }
     }
+  } catch (err) {
+    console.error('Error inesperado:', err)
+    error = 'Error inesperado al cargar datos'
   }
 
-  // Mostrar loading si está cargando
-  if (isLoading) {
+  // Si hay error, mostrar estado de error
+  if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Cargando dashboard...</p>
-        </div>
-      </div>
-    )
-  }
-
-  // Mostrar info si no hay usuario (no debería pasar por el middleware)
-  if (!user) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <p className="text-gray-600">No hay usuario autenticado</p>
-          <button 
-            onClick={() => window.location.href = '/login'}
-            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded"
-          >
-            Ir al Login
-          </button>
+      <div className="max-w-7xl mx-auto">
+        <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+          <h2 className="text-lg font-semibold text-red-800 mb-2">
+            Error al cargar el dashboard
+          </h2>
+          <p className="text-red-700">{error}</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-lg shadow p-6 mb-8">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 mb-2">
-                🎉 ¡Dashboard Funcionando!
-              </h1>
-              <p className="text-gray-600">
-                Bienvenido, {user?.user_metadata?.full_name || user?.email}
-              </p>
-            </div>
-            
-            <button
-              onClick={handleSignOut}
-              className="mt-4 md:mt-0 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors"
-            >
-              Cerrar Sesión
-            </button>
-          </div>
+    <div className="max-w-7xl mx-auto space-y-6">
+      {/* Sección de bienvenida */}
+      <WelcomeSection 
+        user={userProfile}
+      />
+
+      {/* Grid principal del dashboard */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Columna izquierda: Estadísticas y agente principal */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Estadísticas de uso */}
+          <UsageStats 
+            messagesUsed={mockUsageData.messagesUsed}
+            messagesLimit={mockUsageData.messagesLimit}
+            currentPlan={mockUsageData.currentPlan}
+            sessionsCompleted={mockUsageData.sessionsCompleted}
+          />
+
+          {/* Agente principal destacado */}
+          <AgentCard />
         </div>
 
-        {/* Contenido */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">
-            ✅ ¡Sistema de Autenticación Completo!
-          </h2>
-          
-          <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
-            <p className="text-green-800 font-medium">
-              🎯 Tu autenticación está funcionando perfectamente.
-            </p>
-            <p className="text-green-700 text-sm mt-1">
-              El login, las redirecciones y la protección de rutas están operativos.
-            </p>
-          </div>
-
-          {/* Info del usuario */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="font-medium text-gray-900 mb-3">Información del usuario:</h3>
-            <div className="text-sm space-y-2">
-              <p><strong>Email:</strong> {user?.email}</p>
-              <p><strong>Nombre:</strong> {user?.user_metadata?.full_name || 'No especificado'}</p>
-              <p><strong>ID:</strong> {user?.id?.slice(0, 8)}...</p>
-              <p><strong>Email Verificado:</strong> {user?.email_confirmed_at ? '✅ Sí' : '❌ No'}</p>
-              <p><strong>Última conexión:</strong> {user?.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString() : 'No disponible'}</p>
-            </div>
-          </div>
-
-          {/* Próximos pasos */}
-          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <h3 className="font-medium text-blue-900 mb-2">
-              🚀 Próximos pasos del desarrollo:
-            </h3>
-            <ul className="text-blue-800 text-sm space-y-1">
-              <li>• Sprint 2: Catálogo de agentes conversacionales</li>
-              <li>• Sprint 3: Sistema de chat y mensajería</li>
-              <li>• Sprint 4: Exportación de contexto</li>
-              <li>• Sprint 5: Sistema de suscripciones</li>
-            </ul>
-          </div>
+        {/* Columna derecha: Historial de sesiones recientes */}
+        <div className="lg:col-span-1">
+          <RecentSessions sessions={mockRecentSessions} />
         </div>
       </div>
     </div>

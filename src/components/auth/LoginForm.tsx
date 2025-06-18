@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import Link from 'next/link'
@@ -11,7 +10,6 @@ import { loginSchema, type LoginFormData } from '@/lib/validations/auth'
 export default function LoginForm() {
   const [isLoading, setIsLoading] = useState(false)
   const [authError, setAuthError] = useState<string>('')
-  const router = useRouter()
 
   const {
     register,
@@ -28,6 +26,7 @@ export default function LoginForm() {
       setIsLoading(true)
       setAuthError('')
 
+      // QUITAR updateSession que causa error
       const { data: authData, error } = await supabase.auth.signInWithPassword({
         email: data.email,
         password: data.password
@@ -41,24 +40,24 @@ export default function LoginForm() {
 
       if (error) {
         console.error('❌ Error de autenticación:', error)
-        
         if (error.message.includes('Invalid login credentials')) {
           setAuthError('Email o contraseña incorrectos')
-        } else if (error.message.includes('Email not confirmed')) {
-          setAuthError('Por favor confirma tu email antes de iniciar sesión')
         } else {
-          setAuthError(`Error: ${error.message}`)
+          setAuthError(error.message)
         }
         return
       }
 
       if (authData.user && authData.session) {
-        console.log('✅ Login exitoso, redirigiendo...')
-        // Dar tiempo para que el AuthProvider se actualice
-        setTimeout(() => {
-          router.push('/dashboard')
-          router.refresh()
-        }, 100)
+        console.log('✅ Login exitoso')
+        console.log('💾 Sesión establecida, esperando propagación...')
+        
+        // Esperar más tiempo para que las cookies se establezcan
+        await new Promise(resolve => setTimeout(resolve, 1000))
+        
+        console.log('🚀 Redirigiendo al dashboard...')
+        // Forzar recarga completa para que el middleware vea las cookies
+        window.location.href = '/dashboard'
       } else {
         console.warn('⚠️ Login sin usuario o sesión')
         setAuthError('Login incompleto. Inténtalo de nuevo.')
@@ -74,7 +73,6 @@ export default function LoginForm() {
 
   return (
     <div className="w-full max-w-md mx-auto">
-      {/* Header del formulario */}
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold text-gray-900 mb-2">
           Iniciar Sesión
@@ -84,9 +82,7 @@ export default function LoginForm() {
         </p>
       </div>
 
-      {/* Formulario */}
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        {/* Campo Email */}
         <div>
           <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
             Email
@@ -96,15 +92,7 @@ export default function LoginForm() {
             type="email"
             id="email"
             placeholder="tu@email.com"
-            className={`
-              w-full px-4 py-3 rounded-lg border transition-colors
-              ${errors.email 
-                ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
-                : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
-              }
-              focus:outline-none focus:ring-2 focus:ring-opacity-50
-              disabled:bg-gray-50 disabled:cursor-not-allowed
-            `}
+            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-blue-500 focus:outline-none focus:ring-2 focus:ring-opacity-50 disabled:bg-gray-50 disabled:cursor-not-allowed"
             disabled={isLoading}
           />
           {errors.email && (
@@ -112,7 +100,6 @@ export default function LoginForm() {
           )}
         </div>
 
-        {/* Campo Contraseña */}
         <div>
           <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
             Contraseña
@@ -122,15 +109,7 @@ export default function LoginForm() {
             type="password"
             id="password"
             placeholder="Tu contraseña"
-            className={`
-              w-full px-4 py-3 rounded-lg border transition-colors
-              ${errors.password 
-                ? 'border-red-300 focus:border-red-500 focus:ring-red-500' 
-                : 'border-gray-300 focus:border-blue-500 focus:ring-blue-500'
-              }
-              focus:outline-none focus:ring-2 focus:ring-opacity-50
-              disabled:bg-gray-50 disabled:cursor-not-allowed
-            `}
+            className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:border-blue-500 focus:ring-blue-500 focus:outline-none focus:ring-2 focus:ring-opacity-50 disabled:bg-gray-50 disabled:cursor-not-allowed"
             disabled={isLoading}
           />
           {errors.password && (
@@ -138,14 +117,12 @@ export default function LoginForm() {
           )}
         </div>
 
-        {/* Error de autenticación */}
         {authError && (
           <div className="p-3 rounded-lg bg-red-50 border border-red-200">
             <p className="text-sm text-red-700">{authError}</p>
           </div>
         )}
 
-        {/* Botón de envío */}
         <button
           type="submit"
           disabled={isLoading || !isValid}
@@ -184,7 +161,6 @@ export default function LoginForm() {
         </button>
       </form>
 
-      {/* Link de registro */}
       <div className="mt-8 text-center">
         <p className="text-gray-600 text-sm">
           ¿No tienes cuenta?{' '}

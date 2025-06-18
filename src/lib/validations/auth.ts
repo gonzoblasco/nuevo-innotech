@@ -1,8 +1,11 @@
 // ===================================================================
-// 📁 CREAR ARCHIVO: src/lib/validations/auth.ts
+// 📁 ARCHIVO: src/lib/validations/auth.ts
 // ===================================================================
 /**
  * Esquemas de validación con Zod para los formularios de autenticación
+ * 
+ * Estos esquemas proporcionan validación tanto del lado del cliente
+ * como del servidor, asegurando consistencia y seguridad.
  */
 import { z } from 'zod'
 

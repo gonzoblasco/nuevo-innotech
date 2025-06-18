@@ -9,9 +9,10 @@
  */
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import type { CookieOptions } from '@supabase/ssr'
 
-export function createClient() {
-  const cookieStore = cookies()
+export async function createClient() {
+  const cookieStore = await cookies()
 
   return createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -21,17 +22,17 @@ export function createClient() {
         get(name: string) {
           return cookieStore.get(name)?.value
         },
-        set(name: string, value: string, options: any) {
+        set(name: string, value: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value, ...options })
-          } catch (error) {
+          } catch {
             // El middleware no puede establecer cookies, ignoramos el error
           }
         },
-        remove(name: string, options: any) {
+        remove(name: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value: '', ...options })
-          } catch (error) {
+          } catch {
             // El middleware no puede eliminar cookies, ignoramos el error
           }
         },

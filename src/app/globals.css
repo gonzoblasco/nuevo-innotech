@@ -1,4 +1,1 @@
-@import "tailwindcss/preflight";
-@tailwind utilities;
-
-/* Estilos adicionales personalizados pueden ir aquí */
+@import "tailwindcss";

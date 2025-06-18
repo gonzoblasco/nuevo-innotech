@@ -36,18 +36,28 @@ export default function AuthProvider({ children }: AuthProviderProps) {
   useEffect(() => {
     console.log('🔄 AuthProvider iniciando...')
 
-    // Función para obtener la sesión inicial
     const getInitialSession = async () => {
       try {
         console.log('📡 Obteniendo sesión inicial...')
         const { data: { session }, error } = await supabase.auth.getSession()
         
+        console.log('📊 Estado de la sesión:', {
+          session: session ? '✅ Encontrada' : '❌ No encontrada',
+          user: session?.user ? '✅ Usuario presente' : '❌ Sin usuario',
+          error: error ? `❌ ${error.message}` : '✅ Sin errores'
+        })
+        
         if (error) {
           console.error('❌ Error obteniendo sesión:', error)
         } else {
-          console.log('✅ Sesión obtenida:', session ? 'Usuario logueado' : 'Sin sesión')
           setSession(session)
           setUser(session?.user ?? null)
+          
+          // 🔍 DEBUG: Verificar localStorage
+          if (typeof window !== 'undefined') {
+            const keys = Object.keys(localStorage).filter(key => key.includes('supabase'))
+            console.log('🗄️ Claves en localStorage:', keys.length > 0 ? keys : 'Ninguna')
+          }
         }
       } catch (error) {
         console.error('💥 Error inesperado:', error)
@@ -57,23 +67,27 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       }
     }
 
-    // Obtener sesión inicial
     getInitialSession()
 
-    // Escuchar cambios de autenticación
-    console.log('👂 Configurando listener de autenticación...')
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('🔔 Evento de autenticación:', event, session ? 'Con sesión' : 'Sin sesión')
+        console.log('🔔 Evento de autenticación:', event, {
+          session: session ? '✅ Con sesión' : '❌ Sin sesión',
+          user: session?.user ? '✅ Con usuario' : '❌ Sin usuario'
+        })
         
         setSession(session)
         setUser(session?.user ?? null)
         setIsLoading(false)
 
-        // Log específico por evento
         switch (event) {
           case 'SIGNED_IN':
             console.log('✅ Usuario autenticado:', session?.user?.email)
+            // 🔍 DEBUG: Verificar qué se guardó
+            if (typeof window !== 'undefined') {
+              const keys = Object.keys(localStorage).filter(key => key.includes('supabase'))
+              console.log('🗄️ Después del login, localStorage:', keys)
+            }
             break
           case 'SIGNED_OUT':
             console.log('🚪 Usuario cerró sesión')
@@ -85,7 +99,6 @@ export default function AuthProvider({ children }: AuthProviderProps) {
       }
     )
 
-    // Cleanup
     return () => {
       console.log('🧹 Limpiando listener...')
       subscription.unsubscribe()
@@ -98,7 +111,6 @@ export default function AuthProvider({ children }: AuthProviderProps) {
     isLoading
   }
 
-  // Mostrar estado de carga
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">

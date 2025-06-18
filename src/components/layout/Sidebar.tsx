@@ -1,15 +1,11 @@
 // ===================================================================
-// 📁 ARCHIVO: src/components/layout/Sidebar.tsx
+// 📁 ARCHIVO: src/components/layout/Sidebar.tsx (ACTUALIZADO)
 // ===================================================================
 /**
- * Componente de navegación lateral del dashboard
+ * Componente de navegación lateral del dashboard - ACTUALIZADO
  * 
- * Características:
- * - Responsive (overlay en móvil, fijo en desktop)
- * - Enlaces de navegación principales
- * - Información del usuario
- * - Botón de cerrar sesión integrado
- * - Animaciones suaves
+ * Ahora incluye el enlace al Arquitecto de Decisiones Estratégicas
+ * y una mejor organización visual de la navegación.
  */
 'use client'
 
@@ -25,7 +21,9 @@ import {
   User as UserIcon, 
   Settings,
   LogOut,
-  Sparkles
+  Sparkles,
+  Brain,
+  Star
 } from 'lucide-react'
 
 interface SidebarProps {
@@ -34,45 +32,69 @@ interface SidebarProps {
   onClose: () => void
 }
 
-// Configuración de enlaces de navegación
+// Configuración de enlaces de navegación ACTUALIZADA
 const navigationItems = [
   {
     name: 'Dashboard',
     href: '/dashboard',
     icon: LayoutDashboard,
-    description: 'Vista general'
+    description: 'Vista general',
+    category: 'main'
+  },
+  // 🆕 NUEVO: Arquitecto de Decisiones
+  {
+    name: 'Arquitecto de Decisiones',
+    href: '/dashboard/arquitecto-decisiones',
+    icon: Brain,
+    description: 'Análisis estratégico',
+    category: 'agents',
+    badge: 'Destacado',
+    badgeColor: 'bg-yellow-100 text-yellow-800'
   },
   {
-    name: 'Agentes',
+    name: 'Catálogo de Agentes',
     href: '/dashboard/agents',
     icon: Sparkles,
-    description: 'Catálogo de IA'
+    description: 'Todos los especialistas',
+    category: 'agents'
   },
   {
     name: 'Conversaciones',
     href: '/dashboard/conversations',
     icon: MessageSquare,
-    description: 'Chats activos'
+    description: 'Chats activos',
+    category: 'activity'
   },
   {
     name: 'Historial',
     href: '/dashboard/history',
     icon: History,
-    description: 'Sesiones pasadas'
+    description: 'Sesiones pasadas',
+    category: 'activity'
   },
   {
     name: 'Perfil',
     href: '/dashboard/profile',
     icon: UserIcon,
-    description: 'Tu cuenta'
+    description: 'Tu cuenta',
+    category: 'settings'
   },
   {
     name: 'Configuración',
     href: '/dashboard/settings',
     icon: Settings,
-    description: 'Preferencias'
+    description: 'Preferencias',
+    category: 'settings'
   }
 ]
+
+// Agrupación de navegación para mejor organización
+const navigationCategories = {
+  main: 'Principal',
+  agents: 'Agentes IA',
+  activity: 'Actividad',
+  settings: 'Configuración'
+}
 
 export default function Sidebar({ user, isOpen, onClose }: SidebarProps) {
   const pathname = usePathname()
@@ -107,6 +129,13 @@ export default function Sidebar({ user, isOpen, onClose }: SidebarProps) {
     }
     return pathname.startsWith(href)
   }
+
+  // Agrupar elementos por categoría
+  const groupedNavigation = Object.entries(navigationCategories).map(([key, label]) => ({
+    category: key,
+    label,
+    items: navigationItems.filter(item => item.category === key)
+  }))
 
   return (
     <>
@@ -159,39 +188,65 @@ export default function Sidebar({ user, isOpen, onClose }: SidebarProps) {
             </div>
           </div>
 
-          {/* Navegación principal */}
-          <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto">
-            {navigationItems.map((item) => {
-              const Icon = item.icon
-              const isActive = isActiveLink(item.href)
-              
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  onClick={onClose} // Cerrar sidebar en móvil al hacer clic
-                  className={`
-                    group flex items-center px-3 py-2 text-sm font-medium rounded-lg
-                    transition-all duration-200
-                    ${isActive
-                      ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
-                      : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
-                    }
-                  `}
-                >
-                  <Icon 
-                    className={`
-                      flex-shrink-0 h-5 w-5 mr-3
-                      ${isActive ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500'}
-                    `}
-                  />
-                  <div className="flex-1">
-                    <div className="text-sm">{item.name}</div>
-                    <div className="text-xs opacity-75">{item.description}</div>
+          {/* Navegación principal ACTUALIZADA con categorías */}
+          <nav className="flex-1 px-4 py-4 space-y-6 overflow-y-auto">
+            {groupedNavigation.map((group) => (
+              <div key={group.category}>
+                {/* Título de la categoría (no mostrar para main) */}
+                {group.category !== 'main' && (
+                  <div className="px-3 mb-2">
+                    <h3 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                      {group.label}
+                    </h3>
                   </div>
-                </Link>
-              )
-            })}
+                )}
+                
+                {/* Enlaces de la categoría */}
+                <div className="space-y-1">
+                  {group.items.map((item) => {
+                    const Icon = item.icon
+                    const isActive = isActiveLink(item.href)
+                    
+                    return (
+                      <Link
+                        key={item.name}
+                        href={item.href}
+                        onClick={onClose} // Cerrar sidebar en móvil al hacer clic
+                        className={`
+                          group flex items-center px-3 py-2 text-sm font-medium rounded-lg
+                          transition-all duration-200 relative
+                          ${isActive
+                            ? 'bg-blue-50 text-blue-700 border-r-2 border-blue-600'
+                            : 'text-gray-700 hover:bg-gray-50 hover:text-gray-900'
+                          }
+                        `}
+                      >
+                        <Icon 
+                          className={`
+                            flex-shrink-0 h-5 w-5 mr-3
+                            ${isActive ? 'text-blue-600' : 'text-gray-400 group-hover:text-gray-500'}
+                          `}
+                        />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm truncate">{item.name}</div>
+                          <div className="text-xs opacity-75 truncate">{item.description}</div>
+                        </div>
+                        
+                        {/* Badge para elementos destacados */}
+                        {item.badge && (
+                          <span className={`
+                            ml-2 px-2 py-1 text-xs font-semibold rounded-full flex-shrink-0
+                            ${item.badgeColor || 'bg-blue-100 text-blue-800'}
+                          `}>
+                            {item.badge}
+                          </span>
+                        )}
+                      </Link>
+                    )
+                  })}
+                </div>
+              </div>
+            ))}
           </nav>
 
           {/* Botón de cerrar sesión */}

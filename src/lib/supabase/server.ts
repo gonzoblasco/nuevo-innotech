@@ -1,12 +1,3 @@
-// ===================================================================
-// 📁 ARCHIVO: src/lib/supabase/server.ts
-// ===================================================================
-/**
- * Cliente de Supabase para el lado del servidor (Server Components, API Routes, Middleware)
- * 
- * Este cliente se utiliza en contextos de servidor donde necesitamos
- * verificar la autenticación sin acceso al localStorage del navegador.
- */
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import type { CookieOptions } from '@supabase/ssr'
@@ -20,23 +11,32 @@ export async function createClient() {
     {
       cookies: {
         get(name: string) {
-          return cookieStore.get(name)?.value
+          const cookie = cookieStore.get(name)?.value
+          return cookie
         },
         set(name: string, value: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value, ...options })
-          } catch {
-            // El middleware no puede establecer cookies, ignoramos el error
+          } catch (error) {
+            // El middleware puede no poder establecer cookies
+            console.warn('No se pudo establecer cookie:', name)
           }
         },
         remove(name: string, options: CookieOptions) {
           try {
             cookieStore.set({ name, value: '', ...options })
-          } catch {
-            // El middleware no puede eliminar cookies, ignoramos el error
+          } catch (error) {
+            // El middleware puede no poder eliminar cookies
+            console.warn('No se pudo eliminar cookie:', name)
           }
         },
       },
+      auth: {
+        // ✅ CONFIGURACIÓN ADICIONAL PARA MEJOR AUTH
+        persistSession: true,
+        detectSessionInUrl: false, // No detectar en servidor
+        flowType: 'implicit'
+      }
     }
   )
 }

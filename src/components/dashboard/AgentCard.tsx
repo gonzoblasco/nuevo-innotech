@@ -1,9 +1,10 @@
 // ===================================================================
-// 📁 ARCHIVO: src/components/dashboard/AgentCard.tsx
+// 📁 ARCHIVO: src/components/dashboard/AgentCard.tsx (ACTUALIZADO CON ENLACE)
 // ===================================================================
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 import { Sparkles, MessageSquare, Brain, ArrowRight, Star } from 'lucide-react'
 
 export default function AgentCard() {
@@ -22,10 +23,6 @@ export default function AgentCard() {
     sessionsCompleted: 1247,
     responseTime: '< 2 seg',
     lastUpdated: 'Actualizado hoy'
-  }
-
-  const handleStartSession = () => {
-    console.log('Iniciando nueva sesión con:', agent.name)
   }
 
   return (
@@ -99,11 +96,12 @@ export default function AgentCard() {
           </div>
         </div>
 
-        <button
-          onClick={handleStartSession}
+        {/* BOTÓN ACTUALIZADO: Ahora es un Link al formulario */}
+        <Link 
+          href="/dashboard/arquitecto-decisiones"
           onMouseEnter={() => setIsHovered(true)}
           onMouseLeave={() => setIsHovered(false)}
-          className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-4 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 flex items-center justify-center gap-3"
+          className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-semibold py-4 px-6 rounded-lg transition-all duration-300 transform hover:scale-105 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-opacity-50 flex items-center justify-center gap-3 no-underline"
         >
           <MessageSquare className="h-5 w-5" />
           <span>Comenzar Nueva Sesión</span>
@@ -112,7 +110,7 @@ export default function AgentCard() {
               isHovered ? 'translate-x-1' : ''
             }`} 
           />
-        </button>
+        </Link>
 
         <p className="text-xs text-gray-500 text-center mt-3">
           {agent.lastUpdated} • Disponible 24/7
